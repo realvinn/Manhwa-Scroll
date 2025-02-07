@@ -1,5 +1,14 @@
+# Below is the entire code with persistence for Tesseract path, base_speed, text_speed, and region_box.
+# Changes:
+# 1. Added imports for json and os.
+# 2. Added load_config() and save_config() functions.
+# 3. Replaced hardcoded Tesseract path, base_speed, text_speed, and region_box with config-based values.
+# 4. Updated update_settings() and select_region() to save new values to config.json.
+
+import json
+import os
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, filedialog
 import threading
 import time
 
@@ -8,23 +17,48 @@ from PIL import ImageGrab
 import pytesseract
 from pynput import mouse, keyboard
 
-# ================= Global Configuration Variables =================
+# ================= Configuration & Persistence =================
 
-# Manage the Tesseract executable path exclusively via pytesseract.
-pytesseract.pytesseract.tesseract_cmd = r"E:\Tesseract-OCR\tesseract.exe"  # Initial Tesseract path
+CONFIG_FILE = "config.json"
 
-base_speed = 110         # When no text is detected, mouse is set to origin_y + 70
-text_speed = 60         # When text is detected, mouse is set to origin_y + 30
+def load_config():
+    if os.path.exists(CONFIG_FILE):
+        try:
+            with open(CONFIG_FILE, "r") as f:
+                return json.load(f)
+        except (json.JSONDecodeError, IOError):
+            pass
+    # Default values if config.json doesn't exist or is invalid.
+    return {
+        "tesseract_path": "",
+        "base_speed": 110,
+        "text_speed": 60,
+        "region_box": None
+    }
 
-# Fixed timing constants (in seconds)
-initial_delay = 0.05    # Delay after activation before starting OCR/scrolling
-scroll_interval = 0.05  # Interval between OCR checks
 
-# OCR region for screenshot capture (a tuple: left, top, right, bottom)
-region_box = None
+def save_config(config):
+    try:
+        with open(CONFIG_FILE, "w") as f:
+            json.dump(config, f, indent=4)
+    except IOError:
+        pass
+
+# Load config at startup
+config = load_config()
+
+# Apply config values
+pytesseract.pytesseract.tesseract_cmd = config.get("tesseract_path", "")
+base_speed = config.get("base_speed", 110)
+text_speed = config.get("text_speed", 60)
+region_box = config.get("region_box", None)
 
 # Flag to indicate whether auto-scroll is active.
 auto_scrolling = False
+
+# Fixed timing constants (in seconds)
+initial_delay = 0.07    # Delay after activation before starting OCR/scrolling
+scroll_interval = 0.05  # Interval between OCR checks
 
 # ================= Debug Logging Setup =================
 
@@ -37,7 +71,7 @@ def safe_debug_log(msg):
     if debug_text_widget is not None:
         # Use after() to safely update the Text widget from any thread.
         debug_text_widget.after(0, lambda: (debug_text_widget.insert(tk.END, msg + "\n"),
-                                              debug_text_widget.see(tk.END)))
+                                            debug_text_widget.see(tk.END)))
 
 # ================= UI Widget Variables (set later) =================
 
@@ -50,9 +84,10 @@ text_speed_entry = None
 # ================= Function: Update Settings =================
 
 def update_settings():
-    """Update global settings from the UI entry fields and update pytesseract's path."""
+    """Update global settings from the UI entry fields and config, then save them."""
     global base_speed, text_speed
     new_tesseract_path = tesseract_entry.get()
+    config["tesseract_path"] = new_tesseract_path
     pytesseract.pytesseract.tesseract_cmd = new_tesseract_path
 
     try:
@@ -63,6 +98,10 @@ def update_settings():
         text_speed = int(text_speed_entry.get())
     except ValueError:
         text_speed = 30
+
+    config["base_speed"] = base_speed
+    config["text_speed"] = text_speed
+    save_config(config)
 
     safe_debug_log("Settings updated:")
     safe_debug_log("  Tesseract: " + pytesseract.pytesseract.tesseract_cmd)
@@ -107,6 +146,8 @@ def select_region():
         x2, y2 = max(start_x, end_x), max(start_y, end_y)
         region_box = (x1, y1, x2, y2)
         region_label.config(text=f"Region: {region_box}")
+        config["region_box"] = region_box
+        save_config(config)
         overlay.destroy()
         safe_debug_log("Region selected: " + str(region_box))
 
@@ -119,13 +160,13 @@ def select_region():
 def auto_scroll_function():
     """
     After a short fixed delay, repeatedly check the OCR region by running two concurrent OCR workers.
-    
+
     The function records the current mouse position as the origin.
     Two worker threads run concurrently, each capturing the OCR region and updating a shared dictionary.
     Every 0.05 seconds the main loop checks both workers’ latest OCR results:
       - If either worker detects text (non-empty), the mouse is set to (origin_x, origin_y + text_speed).
       - Otherwise, the mouse is set to (origin_x, origin_y + base_speed).
-    
+
     The mouse is always positioned absolutely relative to the origin.
     """
     global auto_scrolling, region_box
@@ -191,6 +232,7 @@ def on_mouse_click(x, y, button, pressed):
             if auto_scrolling:
                 auto_scrolling = False
 
+
 def on_key_press(key):
     """
     Keyboard press handler: stops auto-scroll if it is active.
@@ -229,6 +271,16 @@ def main():
     tesseract_entry.insert(0, pytesseract.pytesseract.tesseract_cmd)
     tesseract_entry.grid(row=0, column=1, padx=5, pady=2)
 
+    # Button to browse for Tesseract.exe
+    def browse_tesseract():
+        path = filedialog.askopenfilename(filetypes=[("Executable Files", "*.exe")])
+        if path:
+            tesseract_entry.delete(0, tk.END)
+            tesseract_entry.insert(0, path)
+
+    browse_btn = ttk.Button(settings_frame, text="Browse...", command=browse_tesseract)
+    browse_btn.grid(row=0, column=2, padx=5, pady=2)
+
     ttk.Label(settings_frame, text="Base Movement (px):").grid(row=1, column=0, sticky="w")
     base_speed_entry = ttk.Entry(settings_frame, width=10)
     base_speed_entry.insert(0, str(base_speed))
@@ -240,10 +292,10 @@ def main():
     text_speed_entry.grid(row=2, column=1, padx=5, pady=2, sticky="w")
 
     update_btn = ttk.Button(settings_frame, text="Update Settings", command=update_settings)
-    update_btn.grid(row=3, column=0, columnspan=2, pady=5)
+    update_btn.grid(row=3, column=0, columnspan=3, pady=5)
 
     debug_btn = ttk.Button(settings_frame, text="Open Debug", command=open_debug_window)
-    debug_btn.grid(row=4, column=0, columnspan=2, pady=5)
+    debug_btn.grid(row=4, column=0, columnspan=3, pady=5)
 
     # --- Region Selection Frame ---
     region_frame = ttk.LabelFrame(root, text="OCR Region Selection", padding=10)
@@ -252,7 +304,8 @@ def main():
     select_region_btn = ttk.Button(region_frame, text="Select Screen Region", command=select_region)
     select_region_btn.grid(row=0, column=0, padx=5, pady=5)
 
-    region_label = ttk.Label(region_frame, text="Region: Not set")
+    current_region = "Region: " + (str(region_box) if region_box else "Not set")
+    region_label = ttk.Label(region_frame, text=current_region)
     region_label.grid(row=0, column=1, padx=5, pady=5)
 
     # --- Instructions ---

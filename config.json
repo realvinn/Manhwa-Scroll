@@ -1,0 +1,11 @@
+{
+    "tesseract_path": "E:/Tesseract-OCR/tesseract.exe",
+    "base_speed": 110,
+    "text_speed": 60,
+    "region_box": [
+        971,
+        611,
+        1629,
+        1295
+    ]
+}

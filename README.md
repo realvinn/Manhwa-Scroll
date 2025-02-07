@@ -1,5 +1,44 @@
 # Auto-Scroller README
 
+# Installing Tesseract OCR
+
+Tesseract OCR is an open-source optical character recognition (OCR) engine. This guide will help you install Tesseract OCR on Windows and configure it for use with Python.
+
+## Step 1: Download Tesseract OCR
+
+1. Visit the official Tesseract OCR repository on GitHub:
+   - [Tesseract OCR GitHub Releases](https://github.com/UB-Mannheim/tesseract/wiki)
+2. Download the latest Windows installer (`.exe` file) from the "UB Mannheim" builds section.
+3. Save the file to your computer.
+
+## Step 2: Install Tesseract OCR
+
+1. Run the downloaded `.exe` file.
+2. Follow the installation wizard:
+   - Choose an installation path (e.g., `E:\Tesseract-OCR\`).
+   - Select "Additional Language Data" if needed.
+   - Click "Install" and wait for the process to complete.
+
+## Step 3: Install Python Dependencies
+
+1. Ensure you have Python installed. You can check by running:
+   ```sh
+   python --version
+   ```
+2. Install the required Python libraries using `pip` and `requirements.txt`:
+   ```sh
+   pip install -r requirements.txt
+   ```
+
+## Step 4: Configure Tesseract in Python
+
+Now, open the app 
+
+## Additional Resources
+- [Tesseract OCR Documentation](https://github.com/tesseract-ocr/tesseract)
+- [Pytesseract Documentation](https://pypi.org/project/pytesseract/)
+
+
 ## Why I Made This Thing
 
 Honestly, I was just too annoyed to scroll manually. I mean, who hasn't been there? You're trying to read a manhwa (or manga), and your finger gets tired from scrolling. Yeah, it's a real problem.
