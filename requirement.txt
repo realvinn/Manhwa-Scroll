@@ -2,4 +2,3 @@ pyautogui
 Pillow
 pytesseract
 pynput
-json
