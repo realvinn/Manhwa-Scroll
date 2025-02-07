@@ -1,4 +1,4 @@
-# Auto-Scroller README
+# Auto-Scroller (I use it for Manhwa but it can technically just be used for anything even a looooonnnggg transcript of a lecture)
 
 # Installing Tesseract OCR
 
@@ -43,7 +43,7 @@ Now, open the app
 
 Honestly, I was just too annoyed to scroll manually. I mean, who hasn't been there? You're trying to read a manhwa (or manga), and your finger gets tired from scrolling. Yeah, it's a real problem.
 
-So, I made this auto-scroller thingy. It's still early access (version 0.2, baby!), but it gets the job done.
+So, I made this auto-scroller thingy. It's still early access (version 0.21, baby!), but it gets the job done.
 
 ## What It Can Do
 
@@ -71,11 +71,11 @@ This app can:
 * Make it look prettier (because, let's face it, looks matter)
 
 ## How to Use
-
-1. Run the app (obviously)
-2. Select a screen region for OCR (if you want to)
-3. Click the "Start Auto-Scroll" button (or press the middle mouse button, or press a key... you get the idea)
-4. Enjoy the auto-scrolling goodness!
+1. Change settings as needed and click 'Update Settings'
+2. Select the screen region for OCR (this is required).
+3. To start auto-scroll, press the middle mouse button.
+4. To stop auto-scroll, click any other mouse button or press any key.
+5. Enjoy the auto-scrolling goodness!
 
 ## Contributing
 
